@@ -41,6 +41,10 @@ class Fixture {
 		});
 	}
 
+	mkdir(dirPath: string) {
+		return fs.mkdir(path.join(this.path, dirPath), { recursive: true })
+	}
+
 	writeFile(filePath: string, content: string) {
 		return fs.writeFile(
 			path.join(this.path, filePath),

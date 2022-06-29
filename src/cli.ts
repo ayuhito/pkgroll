@@ -1,5 +1,6 @@
-import * as fs from 'fs/promises';
+import fs from 'fs';
 import { cli } from 'cleye';
+import rimraf from 'rimraf';
 import { rollup, watch } from 'rollup';
 import { version } from '../package.json';
 import { readPackageJson } from './utils/read-package-json';
@@ -59,7 +60,7 @@ const argv = cli({
 		},
 		'clean-dist': {
 			type: Boolean,
-			description: 'Clean distribution directory before building',
+			description: 'Clear distribution directory before building',
 			default: false,
 		},
 	},
@@ -94,6 +95,9 @@ if (tsconfigTarget) {
 }
 
 (async () => {
+
+
+
 	const packageJson = await readPackageJson(cwd);
 	const exportEntries = getExportEntries(packageJson);
 
@@ -114,10 +118,6 @@ if (tsconfigTarget) {
 		new RegExp(`^${dependency}/`),
 	]);
 
-	if (argv.flags['clean-dist']) {
-		await fs.rm(distPath, { recursive: true, force: true });
-	}
-
 	const rollupConfigs = await getRollupConfigs(
 		/**
 		 * Resolve symlink in source path.
@@ -125,7 +125,7 @@ if (tsconfigTarget) {
 		 * Tests since symlinks because tmpdir is a symlink:
 		 * /var/ -> /private/var/
 		 */
-		normalizePath(await fs.realpath(sourcePath), true),
+		normalizePath(await fs.realpathSync.native(sourcePath), true),
 		distPath,
 		sourcePaths,
 		argv.flags,
