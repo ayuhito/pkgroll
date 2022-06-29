@@ -1,4 +1,4 @@
-import fs from 'fs';
+import * as fs from 'fs/promises';
 import { cli } from 'cleye';
 import { rollup, watch } from 'rollup';
 import { version } from '../package.json';
@@ -57,6 +57,11 @@ const argv = cli({
 			type: [String],
 			description: 'Export conditions for resolving dependency export and import maps (eg. --export-condition=node)',
 		},
+		'clean-dist': {
+			type: Boolean,
+			description: 'Clean distribution directory before building',
+			default: false,
+		},
 	},
 
 	help: {
@@ -109,6 +114,10 @@ if (tsconfigTarget) {
 		new RegExp(`^${dependency}/`),
 	]);
 
+	if (argv.flags['clean-dist']) {
+		await fs.rm(distPath, { recursive: true, force: true });
+	}
+
 	const rollupConfigs = await getRollupConfigs(
 		/**
 		 * Resolve symlink in source path.
@@ -116,7 +125,7 @@ if (tsconfigTarget) {
 		 * Tests since symlinks because tmpdir is a symlink:
 		 * /var/ -> /private/var/
 		 */
-		normalizePath(fs.realpathSync.native(sourcePath), true),
+		normalizePath(await fs.realpath(sourcePath), true),
 		distPath,
 		sourcePaths,
 		argv.flags,

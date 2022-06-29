@@ -96,4 +96,50 @@ export default testSuite(({ describe }, nodePath: string) => {
 			await fixture.cleanup();
 		});
 	});
+
+	describe('clean dist', ({ test }) => {
+		test('delete normal dist', async () => {
+			const fixture = await createFixture('./tests/fixture-package');
+
+			await fixture.writeJson('package.json', {
+				main: './dist/index.js',
+				module: './dist/index.mjs',
+				types: './dist/index.d.ts',
+			});
+
+			await fixture.writeFile('dist/test.txt', 'test data');
+			expect(await fixture.exists('dist/test.txt')).toBe(true);
+
+			const pkgrollProcess = await pkgroll(['--clean-dist', '.'], { cwd: fixture.path, nodePath });
+			expect(pkgrollProcess.exitCode).toBe(0);
+			expect(pkgrollProcess.stderr).toBe('');
+
+			expect(await fixture.exists('dist/index.js')).toBe(true);
+			expect(await fixture.exists('dist/test.txt')).toBe(false);
+
+			await fixture.cleanup();
+		});
+
+		test('delete custom distpath', async () => {
+			const fixture = await createFixture('./tests/fixture-package');
+
+			await fixture.writeJson('package.json', {
+				main: './nested/index.js',
+				module: './nested/index.mjs',
+				types: './nested/index.d.ts',
+			});
+
+			await fixture.writeFile('nested/test.txt', 'test data');
+			expect(await fixture.exists('nested/test.txt')).toBe(true);
+
+			const pkgrollProcess = await pkgroll(['--clean-dist', '--dist', './nested'], { cwd: fixture.path, nodePath });
+			expect(pkgrollProcess.exitCode).toBe(0);
+			expect(pkgrollProcess.stderr).toBe('');
+
+			expect(await fixture.exists('nested/index.js')).toBe(true);
+			expect(await fixture.exists('nested/test.txt')).toBe(false);
+
+			await fixture.cleanup();
+		});
+	});
 });
