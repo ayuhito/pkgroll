@@ -11,6 +11,7 @@ import { getSourcePath } from './utils/get-source-path';
 import { getRollupConfigs } from './utils/get-rollup-configs';
 import { tsconfig } from './utils/tsconfig';
 import { log } from './utils/log';
+import rimraf from 'rimraf';
 
 const argv = cli({
 	name: 'pkgroll',
@@ -56,6 +57,11 @@ const argv = cli({
 		exportCondition: {
 			type: [String],
 			description: 'Export conditions for resolving dependency export and import maps (eg. --export-condition=node)',
+		},
+		'clean-dist': {
+			type: Boolean,
+			description: 'Clear distribution directory before building',
+			default: false,
 		},
 	},
 
@@ -108,6 +114,12 @@ if (tsconfigTarget) {
 		dependency,
 		new RegExp(`^${dependency}/`),
 	]);
+
+	if (argv.flags['clean-dist']) {
+		rimraf.sync(`${distPath}*`);
+		// Can replace rimraf with fs/promises once Node 12 support is dropped for 14
+		// await fs.rm(distPath, { recursive: true, force: true });
+	}
 
 	const rollupConfigs = await getRollupConfigs(
 		/**

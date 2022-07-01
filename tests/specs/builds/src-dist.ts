@@ -85,9 +85,37 @@ export default testSuite(({ describe }, nodePath: string) => {
 				types: './nested/index.d.ts',
 			});
 
-			const pkgrollProcess = await pkgroll(['--dist', '.'], { cwd: fixture.path, nodePath });
+			const pkgrollProcess = await pkgroll(['--dist', './nested'], { cwd: fixture.path, nodePath });
 			expect(pkgrollProcess.exitCode).toBe(0);
 			expect(pkgrollProcess.stderr).toBe('');
+
+			expect(await fixture.exists('nested/index.js')).toBe(true);
+			expect(await fixture.exists('nested/index.mjs')).toBe(true);
+			expect(await fixture.exists('nested/index.d.ts')).toBe(true);
+
+			await fixture.cleanup();
+		});
+	});
+
+	describe('clean dist', ({ test }) => {
+		test('nested directory', async () => {
+			const fixture = await createFixture('./tests/fixture-package');
+
+			await fixture.writeJson('package.json', {
+				main: './nested/index.js',
+				module: './nested/index.mjs',
+				types: './nested/index.d.ts',
+			});
+
+			//await fixture.mkdir('nested');
+			//await fixture.writeFile('nested/test.js', 'console.log("test")');
+			//expect(await fixture.exists('nested/test.js')).toBe(true);
+
+			const pkgrollProcess = await pkgroll(['--dist', '.', '--clean-dist',], { cwd: fixture.path, nodePath });
+			expect(pkgrollProcess.exitCode).toBe(0);
+			expect(pkgrollProcess.stderr).toBe('');
+
+			//expect(await fixture.exists('nested/test.js')).toBe(false);
 
 			expect(await fixture.exists('nested/index.js')).toBe(true);
 			expect(await fixture.exists('nested/index.mjs')).toBe(true);
